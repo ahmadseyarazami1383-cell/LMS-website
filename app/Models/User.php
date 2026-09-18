@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
@@ -10,11 +11,17 @@ use App\Models\Course;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, HasFactory;
 
     protected $fillable = [
-        'role_id', 'name', 'email', 'password', 'phone',
-        'profile_image', 'bio', 'status',
+        'role_id',
+        'name',
+        'email',
+        'password',
+        'phone',
+        'profile_image',
+        'bio',
+        'status',
     ];
 
     protected $hidden = [
@@ -50,7 +57,18 @@ class User extends Authenticatable
         return $this->hasMany(QuizAttempt::class, 'student_id');
     }
     public function courses()
-{
-    return $this->hasMany(Course::class, 'teacher_id');
-}
+    {
+        return $this->hasMany(Course::class, 'teacher_id');
+    }
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(
+            Course::class,
+            'enrollments',
+            'student_id',
+            'course_id'
+        )
+            ->withPivot('enrolled_at', 'completed_at', 'status')
+            ->withTimestamps();
+    }
 }

@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class QuizAttempt extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'quiz_id', 'student_id', 'attempt_number', 'score',
         'total_points', 'correct_answers', 'total_questions',
