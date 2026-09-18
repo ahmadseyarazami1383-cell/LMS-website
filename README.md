@@ -1,58 +1,200 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# LMS Week 3 — Database Design, Migrations & Eloquent
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This package is prepared for the LMS project and follows the Week 3 lab requirements:
+ERD, one migration per entity, `$fillable`, Tinker sample data, verification, and Git commands.
 
-## About Laravel
+## Important
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+If the Laravel project already contains the default `create_users_table` migration, DO NOT keep two
+migrations that both create `users`. Replace/merge the default users migration with the provided one.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Copy
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Copy:
+- `database/migrations/*.php` -> your Laravel project's `database/migrations/`
+- `app/Models/*.php` -> your Laravel project's `app/Models/`
+- `docs/ERD.md` -> your Laravel project's `docs/`
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Commands
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan migrate
+php artisan migrate:status
+php artisan tinker
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Tinker sample data
 
-## Contributing
+```php
+use App\Models\Role;
+use App\Models\User;
+use App\Models\Category;
+use App\Models\Course;
+use App\Models\Lesson;
+use App\Models\Quiz;
+use App\Models\Question;
+use App\Models\Option;
+use App\Models\Enrollment;
+use App\Models\QuizAttempt;
+use App\Models\Answer;
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Create records in dependency order:
 
-## Code of Conduct
+```php
+$teacherRole = Role::create(['name' => 'Teacher']);
+$studentRole = Role::create(['name' => 'Student']);
+$adminRole = Role::create(['name' => 'Admin']);
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+$teacher = User::create([
+    'role_id' => $teacherRole->id,
+    'name' => 'Test Teacher',
+    'email' => 'teacher@example.com',
+    'password' => 'password',
+]);
 
-## Security Vulnerabilities
+$student = User::create([
+    'role_id' => $studentRole->id,
+    'name' => 'Test Student',
+    'email' => 'student@example.com',
+    'password' => 'password',
+]);
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+$category = Category::create([
+    'name' => 'Programming',
+    'slug' => 'programming',
+]);
 
-## License
+$course = Course::create([
+    'category_id' => $category->id,
+    'teacher_id' => $teacher->id,
+    'title' => 'Laravel Basics',
+    'slug' => 'laravel-basics',
+    'description' => 'Introduction to Laravel.',
+    'level' => 'Beginner',
+    'price' => 0,
+    'status' => 'published',
+]);
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+$lesson = Lesson::create([
+    'course_id' => $course->id,
+    'title' => 'Introduction to Laravel',
+    'slug' => 'introduction-to-laravel',
+    'content' => 'Laravel introduction lesson.',
+    'order_number' => 1,
+    'status' => 'published',
+]);
+
+$enrollment = Enrollment::create([
+    'student_id' => $student->id,
+    'course_id' => $course->id,
+]);
+
+$quiz = Quiz::create([
+    'course_id' => $course->id,
+    'lesson_id' => $lesson->id,
+    'title' => 'Laravel Quiz',
+    'pass_score' => 50,
+    'status' => 'published',
+]);
+
+$question = Question::create([
+    'quiz_id' => $quiz->id,
+    'question_text' => 'Laravel is built with which language?',
+    'points' => 1,
+    'order_number' => 1,
+]);
+
+Option::create([
+    'question_id' => $question->id,
+    'option_text' => 'PHP',
+    'is_correct' => true,
+    'order_number' => 1,
+]);
+
+Option::create([
+    'question_id' => $question->id,
+    'option_text' => 'Python',
+    'is_correct' => false,
+    'order_number' => 2,
+]);
+
+$attempt = QuizAttempt::create([
+    'quiz_id' => $quiz->id,
+    'student_id' => $student->id,
+    'attempt_number' => 1,
+    'started_at' => now(),
+    'status' => 'submitted',
+    'total_questions' => 1,
+    'correct_answers' => 1,
+    'total_points' => 1,
+    'score' => 100,
+]);
+
+$correctOption = $question->options()->where('is_correct', true)->first();
+
+Answer::create([
+    'attempt_id' => $attempt->id,
+    'question_id' => $question->id,
+    'option_id' => $correctOption->id,
+    'is_correct' => true,
+    'points_earned' => 1,
+]);
+```
+
+## Verification queries
+
+```php
+Role::count();
+User::count();
+Category::count();
+Course::count();
+Lesson::count();
+Enrollment::count();
+Quiz::count();
+Question::count();
+Option::count();
+QuizAttempt::count();
+Answer::count();
+
+Course::with('teacher', 'category', 'lessons')->first();
+$student->enrollments()->with('course')->get();
+$quiz->questions()->with('options')->get();
+$attempt->answers()->with('question', 'option')->get();
+```
+
+Exit:
+```php
+exit
+```
+
+## Git
+
+```bash
+git status
+git add database/migrations/ app/Models/ docs/
+git commit -m "Add LMS database migrations and Eloquent models"
+git push
+```
+
+Teammates:
+```bash
+git pull
+php artisan migrate
+```
+
+For development only, if the database can be destroyed:
+```bash
+php artisan migrate:fresh
+```
+
+## Week 3 checklist
+
+- [x] ER diagram finalized in `docs/ERD.md`
+- [x] One migration per LMS entity
+- [x] Foreign keys defined with `foreignId()->constrained()`
+- [x] `$fillable` added to every model
+- [x] Tinker sample records prepared
+- [x] Query/verification commands prepared
+- [x] Git commit/push commands prepared
+- [ ] Run commands inside the actual Laravel project and take the required screenshots
